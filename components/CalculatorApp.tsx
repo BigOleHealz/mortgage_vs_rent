@@ -1,8 +1,8 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useEffect, useMemo } from "react";
 import { HeadlineResult } from "@/components/results/HeadlineResult";
+import { NetWorthChart } from "@/components/results/NetWorthChart";
 import { YearByYearTable } from "@/components/results/YearByYearTable";
 import { DisplayModeToggle } from "@/components/scenario/DisplayModeToggle";
 import { ScenarioPicker } from "@/components/scenario/ScenarioPicker";
@@ -10,16 +10,6 @@ import { ThemeToggle } from "@/components/scenario/ThemeToggle";
 import { InputRail } from "@/components/sections/InputRail";
 import { calculate } from "@/lib/engine";
 import { useScenarioStore } from "@/lib/store/scenarioStore";
-
-const NetWorthChart = dynamic(
-  () =>
-    import("@/components/results/NetWorthChart").then(
-      (module) => module.NetWorthChart,
-    ),
-  {
-    ssr: false,
-  },
-);
 
 export function CalculatorApp() {
   const scenario = useScenarioStore((state) => state.scenario);
@@ -37,7 +27,7 @@ export function CalculatorApp() {
   }, [themeMode]);
 
   return (
-    <main className="relative min-h-screen overflow-hidden px-6 py-6 lg:px-8">
+    <main className="relative min-h-screen overflow-x-hidden px-6 py-6 lg:px-8">
       <div className="pointer-events-none absolute inset-0 opacity-60 [background:radial-gradient(ellipse_at_70%_0%,hsl(var(--primary)/0.24),transparent_38%),radial-gradient(ellipse_at_8%_18%,hsl(var(--accent)/0.12),transparent_28%)]" />
       <div className="pointer-events-none absolute right-6 top-28 hidden h-40 w-px bg-primary/50 lg:block" />
       <p className="pointer-events-none fixed right-3 top-1/2 hidden origin-center rotate-90 text-[10px] font-bold uppercase tracking-[0.42em] text-primary/70 lg:block">
@@ -76,7 +66,7 @@ export function CalculatorApp() {
               <ScenarioRail scenarioId={activeScenarioId} />
             )}
           </div>
-          <section className="space-y-6">
+          <section className="min-w-0 space-y-6">
             {compareMode ? (
               <>
                 <div className="grid gap-4 xl:grid-cols-2">

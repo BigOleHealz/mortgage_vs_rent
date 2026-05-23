@@ -1,1 +1,1 @@
-export const SCENARIO_STORAGE_KEY = "rent-vs-buy:scenario-store:v3";
+export const SCENARIO_STORAGE_KEY = "rent-vs-buy:scenario-store:v4";

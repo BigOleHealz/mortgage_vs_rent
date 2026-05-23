@@ -2,7 +2,7 @@
 
 import { NumberSliderInput } from "@/components/inputs/NumberSliderInput";
 import type { FilingStatus } from "@/lib/engine";
-import { useScenarioStore } from "@/lib/store/scenarioStore";
+import { type ScenarioId, useScenarioStore } from "@/lib/store/scenarioStore";
 import { SectionCard } from "./SectionCard";
 
 const filingStatuses: { label: string; value: FilingStatus }[] = [
@@ -11,8 +11,8 @@ const filingStatuses: { label: string; value: FilingStatus }[] = [
   { label: "Head of household", value: "headOfHousehold" },
 ];
 
-export function TaxSection() {
-  const taxes = useScenarioStore((state) => state.scenario.taxes);
+export function TaxSection({ scenarioId }: { scenarioId: ScenarioId }) {
+  const taxes = useScenarioStore((state) => state.scenarios[scenarioId].taxes);
   const setFilingStatus = useScenarioStore((state) => state.setFilingStatus);
   const setHouseholdIncome = useScenarioStore((state) => state.setHouseholdIncome);
 
@@ -24,7 +24,7 @@ export function TaxSection() {
           className="w-full rounded-md border bg-card px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-4"
           value={taxes.filingStatus}
           onChange={(event) =>
-            setFilingStatus(event.target.value as FilingStatus)
+            setFilingStatus(event.target.value as FilingStatus, scenarioId)
           }
         >
           {filingStatuses.map((status) => (
@@ -39,7 +39,7 @@ export function TaxSection() {
         label="Household income"
         max={1_000_000}
         min={0}
-        onChange={setHouseholdIncome}
+        onChange={(value) => setHouseholdIncome(value, scenarioId)}
         step={5_000}
         value={taxes.householdIncome}
       />

@@ -1,11 +1,11 @@
 "use client";
 
 import { NumberSliderInput } from "@/components/inputs/NumberSliderInput";
-import { useScenarioStore } from "@/lib/store/scenarioStore";
+import { type ScenarioId, useScenarioStore } from "@/lib/store/scenarioStore";
 import { SectionCard } from "./SectionCard";
 
-export function LoanSection() {
-  const scenario = useScenarioStore((state) => state.scenario);
+export function LoanSection({ scenarioId }: { scenarioId: ScenarioId }) {
+  const scenario = useScenarioStore((state) => state.scenarios[scenarioId]);
   const setClosingCostRate = useScenarioStore((state) => state.setClosingCostRate);
   const setMortgageField = useScenarioStore((state) => state.setMortgageField);
   const addLumpSumPrepayment = useScenarioStore(
@@ -36,7 +36,7 @@ export function LoanSection() {
         label="Mortgage interest rate"
         max={15}
         min={0}
-        onChange={(value) => setMortgageField("mortgageRate", value / 100)}
+        onChange={(value) => setMortgageField("mortgageRate", value / 100, scenarioId)}
         step={0.05}
         value={purchaseMode.mortgageRate * 100}
       />
@@ -44,7 +44,7 @@ export function LoanSection() {
         label="Loan term"
         max={40}
         min={5}
-        onChange={(value) => setMortgageField("loanTermYears", value)}
+        onChange={(value) => setMortgageField("loanTermYears", value, scenarioId)}
         step={1}
         suffix="years"
         value={purchaseMode.loanTermYears}
@@ -54,7 +54,7 @@ export function LoanSection() {
         label="Closing costs"
         max={10}
         min={0}
-        onChange={(value) => setClosingCostRate(value / 100)}
+        onChange={(value) => setClosingCostRate(value / 100, scenarioId)}
         step={0.1}
         value={scenario.property.closingCostRate * 100}
       />
@@ -63,7 +63,7 @@ export function LoanSection() {
         label="PMI rate"
         max={2}
         min={0}
-        onChange={(value) => setMortgageField("pmiRate", value / 100)}
+        onChange={(value) => setMortgageField("pmiRate", value / 100, scenarioId)}
         step={0.05}
         value={purchaseMode.pmiRate * 100}
       />
@@ -72,7 +72,7 @@ export function LoanSection() {
         label="Extra monthly payment"
         max={5_000}
         min={0}
-        onChange={(value) => setMortgageField("extraMonthlyPayment", value)}
+        onChange={(value) => setMortgageField("extraMonthlyPayment", value, scenarioId)}
         step={50}
         value={purchaseMode.extraMonthlyPayment}
       />
@@ -82,7 +82,7 @@ export function LoanSection() {
           <button
             className="rounded-md border px-3 py-1 text-xs font-semibold"
             type="button"
-            onClick={addLumpSumPrepayment}
+            onClick={() => addLumpSumPrepayment(scenarioId)}
           >
             Add
           </button>
@@ -97,7 +97,7 @@ export function LoanSection() {
               max={40}
               min={1}
               onChange={(value) =>
-                updateLumpSumPrepayment(index, { year: value })
+                updateLumpSumPrepayment(index, { year: value }, scenarioId)
               }
               step={1}
               value={prepayment.year}
@@ -108,7 +108,7 @@ export function LoanSection() {
               max={250_000}
               min={0}
               onChange={(value) =>
-                updateLumpSumPrepayment(index, { amount: value })
+                updateLumpSumPrepayment(index, { amount: value }, scenarioId)
               }
               step={1_000}
               value={prepayment.amount}
@@ -116,7 +116,7 @@ export function LoanSection() {
             <button
               className="text-xs font-semibold text-muted-foreground"
               type="button"
-              onClick={() => removeLumpSumPrepayment(index)}
+              onClick={() => removeLumpSumPrepayment(index, scenarioId)}
             >
               Remove prepayment
             </button>

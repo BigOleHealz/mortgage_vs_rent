@@ -7,18 +7,20 @@ import { formatCurrency } from "./formatters";
 interface YearByYearTableProps {
   results: ScenarioResults;
   displayMode: DisplayMode;
+  label?: string;
 }
 
 export function YearByYearTable({
   results,
   displayMode,
+  label,
 }: YearByYearTableProps) {
   return (
     <details className="operator-panel rounded-sm">
       <summary className="cursor-pointer list-none px-5 py-4">
         <p className="operator-kicker">{"// "}Details</p>
         <h2 className="operator-title mt-1 text-3xl">
-          Year-by-Year Output
+          Year-by-Year Output{label ? ` · ${label}` : ""}
         </h2>
       </summary>
       <div className="max-h-[520px] overflow-auto border-t border-primary/15">

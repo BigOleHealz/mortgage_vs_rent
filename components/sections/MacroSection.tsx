@@ -1,11 +1,11 @@
 "use client";
 
 import { NumberSliderInput } from "@/components/inputs/NumberSliderInput";
-import { useScenarioStore } from "@/lib/store/scenarioStore";
+import { type ScenarioId, useScenarioStore } from "@/lib/store/scenarioStore";
 import { SectionCard } from "./SectionCard";
 
-export function MacroSection() {
-  const scenario = useScenarioStore((state) => state.scenario);
+export function MacroSection({ scenarioId }: { scenarioId: ScenarioId }) {
+  const scenario = useScenarioStore((state) => state.scenarios[scenarioId]);
   const setInflationRate = useScenarioStore((state) => state.setInflationRate);
   const setSaleYear = useScenarioStore((state) => state.setSaleYear);
 
@@ -16,7 +16,7 @@ export function MacroSection() {
         label="Inflation rate"
         max={10}
         min={0}
-        onChange={(value) => setInflationRate(value / 100)}
+        onChange={(value) => setInflationRate(value / 100, scenarioId)}
         step={0.1}
         value={scenario.macro.inflationRate * 100}
       />
@@ -24,7 +24,7 @@ export function MacroSection() {
         label="Display year"
         max={scenario.horizonYears}
         min={1}
-        onChange={setSaleYear}
+        onChange={(value) => setSaleYear(value, scenarioId)}
         step={1}
         suffix="years"
         value={scenario.saleYear}

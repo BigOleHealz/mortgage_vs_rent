@@ -14,18 +14,16 @@ export function YearByYearTable({
   displayMode,
 }: YearByYearTableProps) {
   return (
-    <details className="rounded-2xl border bg-card shadow-sm">
+    <details className="operator-panel rounded-sm">
       <summary className="cursor-pointer list-none px-5 py-4">
-        <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
-          Details
-        </p>
-        <h2 className="mt-1 font-serif text-2xl font-semibold">
-          Year-by-year output
+        <p className="operator-kicker">{"// "}Details</p>
+        <h2 className="operator-title mt-1 text-3xl">
+          Year-by-Year Output
         </h2>
       </summary>
-      <div className="max-h-[520px] overflow-auto border-t">
+      <div className="max-h-[520px] overflow-auto border-t border-primary/15">
         <table className="w-full border-collapse text-sm">
-          <thead className="sticky top-0 bg-secondary text-left text-xs uppercase tracking-[0.12em] text-muted-foreground">
+          <thead className="sticky top-0 bg-secondary text-left text-xs uppercase tracking-[0.18em] text-muted-foreground">
             <tr>
               <th className="px-4 py-3">Year</th>
               <th className="px-4 py-3 text-right">Home value</th>
@@ -48,7 +46,7 @@ export function YearByYearTable({
               const delta = displayMode === "real" ? row.realDelta : row.delta;
 
               return (
-                <tr className="border-t" key={row.year}>
+                <tr className="border-t border-primary/10" key={row.year}>
                   <td className="px-4 py-3 font-semibold">{row.year}</td>
                   <td className="px-4 py-3 text-right tabular-nums">
                     {formatCurrency(buy.homeValue)}

@@ -16,6 +16,8 @@ interface NumberSliderInputProps {
   className?: string;
 }
 
+const INPUT_DEBOUNCE_MS = 50;
+
 export function NumberSliderInput({
   label,
   value,
@@ -44,7 +46,7 @@ export function NumberSliderInput({
 
     const timeout = window.setTimeout(() => {
       onChange(clampToRange(numericValue, min, max));
-    }, 150);
+    }, INPUT_DEBOUNCE_MS);
 
     return () => window.clearTimeout(timeout);
   }, [draftValue, max, min, onChange]);
@@ -57,20 +59,20 @@ export function NumberSliderInput({
     <div className={cn("space-y-2", className)}>
       <div className="flex items-start justify-between gap-4">
         <div>
-          <label className="text-sm font-semibold" htmlFor={id}>
+          <label className="text-xs font-bold uppercase tracking-[0.12em]" htmlFor={id}>
             {label}
           </label>
           {description ? (
             <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
           ) : null}
         </div>
-        <div className="flex items-center rounded-md border bg-card px-2 py-1 shadow-sm">
+        <div className="flex items-center rounded-sm border border-primary/15 bg-background/45 px-2 py-1 shadow-inner">
           {format === "currency" ? (
             <span className="text-sm text-muted-foreground">$</span>
           ) : null}
           <input
             id={id}
-            className="w-24 bg-transparent text-right text-sm font-semibold tabular-nums outline-none"
+            className="w-24 bg-transparent text-right text-sm font-bold tabular-nums outline-none"
             inputMode="decimal"
             type="number"
             min={min}
@@ -89,7 +91,7 @@ export function NumberSliderInput({
       </div>
       <input
         aria-label={`${label} slider`}
-        className="h-2 w-full cursor-pointer appearance-none rounded-full bg-secondary accent-primary"
+        className="h-1.5 w-full cursor-pointer appearance-none rounded-none bg-secondary accent-primary"
         type="range"
         min={min}
         max={max}
@@ -101,8 +103,8 @@ export function NumberSliderInput({
         <span>{formatTick(min, format, suffix)}</span>
         <span>{formatTick(max, format, suffix)}</span>
       </div>
-      <p className="text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
-        Manual
+      <p className="text-[10px] font-bold uppercase tracking-[0.28em] text-primary/80">
+        Source: Manual
       </p>
     </div>
   );

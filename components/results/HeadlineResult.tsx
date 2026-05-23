@@ -18,13 +18,11 @@ export function HeadlineResult({ results, displayMode }: HeadlineResultProps) {
   const buyerWins = delta >= 0;
 
   return (
-    <section className="rounded-2xl border bg-card p-6 shadow-sm">
-      <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
-        Headline result
-      </p>
-      <h2 className="mt-3 font-serif text-4xl font-semibold tracking-tight">
+    <section className="operator-panel rounded-sm p-6">
+      <p className="operator-kicker">SYS.STATUS: headline result</p>
+      <h2 className="operator-title mt-3 text-5xl leading-[0.92]">
         At year {headlineYear}, buying nets you{" "}
-        <span className={buyerWins ? "text-primary" : "text-accent"}>
+        <span className={buyerWins ? "text-primary" : "text-accent drop-shadow-[0_0_18px_hsl(var(--accent)/0.35)]"}>
           {formatCurrency(Math.abs(delta))}
         </span>{" "}
         {buyerWins ? "more" : "less"} than renting.
@@ -61,11 +59,11 @@ export function HeadlineResult({ results, displayMode }: HeadlineResultProps) {
 
 function Metric({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-xl border bg-secondary/50 p-3">
-      <p className="text-xs uppercase tracking-[0.18em] text-muted-foreground">
+    <div className="rounded-sm border border-primary/15 bg-secondary/60 p-3">
+      <p className="text-[10px] font-bold uppercase tracking-[0.26em] text-muted-foreground">
         {label}
       </p>
-      <p className="mt-1 text-2xl font-semibold tabular-nums">{value}</p>
+      <p className="mt-1 font-serif text-3xl font-bold tabular-nums">{value}</p>
     </div>
   );
 }

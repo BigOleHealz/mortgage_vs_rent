@@ -117,7 +117,7 @@ export const useScenarioStore = create<ScenarioStoreState>()(
     (set) => ({
       scenario: defaultScenario,
       displayMode: "nominal",
-      themeMode: "light",
+      themeMode: "dark",
       headlineYear: defaultScenario.saleYear,
       setDisplayMode: (displayMode) => set({ displayMode }),
       setThemeMode: (themeMode) => set({ themeMode }),

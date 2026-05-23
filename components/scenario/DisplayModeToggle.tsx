@@ -7,7 +7,7 @@ export function DisplayModeToggle() {
   const setDisplayMode = useScenarioStore((state) => state.setDisplayMode);
 
   return (
-    <div className="flex items-center rounded-full border bg-card p-1 text-sm font-semibold shadow-sm">
+    <div className="flex items-center rounded-sm border border-primary/25 bg-card/80 p-1 text-xs font-bold uppercase tracking-[0.16em] shadow-[0_0_24px_hsl(var(--primary)/0.08)]">
       <ToggleButton
         active={displayMode === "nominal"}
         label="Nominal"
@@ -37,7 +37,7 @@ function ToggleButton({
 }) {
   return (
     <button
-      className={`rounded-full px-4 py-1.5 ${
+      className={`rounded-sm px-4 py-1.5 transition ${
         active ? "bg-primary text-primary-foreground" : "text-muted-foreground"
       }`}
       type="button"

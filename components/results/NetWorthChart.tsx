@@ -36,24 +36,22 @@ export function NetWorthChart({ results, displayMode }: NetWorthChartProps) {
   }));
 
   return (
-    <section className="rounded-2xl border bg-card p-5 shadow-sm">
+    <section className="operator-panel rounded-sm p-5">
       <div className="mb-4 flex items-end justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-[0.24em] text-muted-foreground">
-            Net worth over time
-          </p>
-          <h2 className="mt-1 font-serif text-2xl font-semibold">
-            Buy path vs. rent + invest path
+          <p className="operator-kicker">Unified_Spectrum</p>
+          <h2 className="operator-title mt-1 text-3xl">
+            Buy Path vs. Rent + Invest Path
           </h2>
         </div>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-xs font-bold uppercase tracking-[0.22em] text-muted-foreground">
           {displayMode === "real" ? "Inflation-adjusted" : "Nominal"} dollars
         </p>
       </div>
       <div className="h-[360px]">
         <ResponsiveContainer height="100%" width="100%">
           <LineChart data={data} margin={{ bottom: 8, left: 12, right: 20, top: 8 }}>
-            <CartesianGrid strokeDasharray="3 3" />
+            <CartesianGrid stroke="hsl(var(--border))" strokeDasharray="3 3" />
             <XAxis dataKey="year" tickLine={false} />
             <YAxis
               tickFormatter={formatCompactCurrency}
@@ -110,7 +108,7 @@ function ChartTooltip({
   const delta = buyer - renter;
 
   return (
-    <div className="rounded-lg border bg-card p-3 text-sm shadow-lg">
+    <div className="rounded-sm border border-primary/30 bg-card/95 p-3 text-sm shadow-[0_0_28px_hsl(var(--primary)/0.16)]">
       <p className="font-semibold">Year {label}</p>
       <p>Buyer: {formatCurrency(buyer)}</p>
       <p>Renter: {formatCurrency(renter)}</p>

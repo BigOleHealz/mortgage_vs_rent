@@ -1,11 +1,12 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useMemo } from "react";
+import { useEffect, useMemo } from "react";
 import { HeadlineResult } from "@/components/results/HeadlineResult";
 import { YearByYearTable } from "@/components/results/YearByYearTable";
 import { DisplayModeToggle } from "@/components/scenario/DisplayModeToggle";
 import { ScenarioPicker } from "@/components/scenario/ScenarioPicker";
+import { ThemeToggle } from "@/components/scenario/ThemeToggle";
 import { InputRail } from "@/components/sections/InputRail";
 import { calculate } from "@/lib/engine";
 import { useScenarioStore } from "@/lib/store/scenarioStore";
@@ -23,7 +24,12 @@ const NetWorthChart = dynamic(
 export function CalculatorApp() {
   const scenario = useScenarioStore((state) => state.scenario);
   const displayMode = useScenarioStore((state) => state.displayMode);
+  const themeMode = useScenarioStore((state) => state.themeMode);
   const results = useMemo(() => calculate(scenario), [scenario]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", themeMode === "dark");
+  }, [themeMode]);
 
   return (
     <main className="min-h-screen px-6 py-6 lg:px-8">
@@ -41,6 +47,7 @@ export function CalculatorApp() {
             <div className="flex items-center gap-3">
               <ScenarioPicker />
               <DisplayModeToggle />
+              <ThemeToggle />
             </div>
           </div>
         </header>

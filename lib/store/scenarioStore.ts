@@ -15,14 +15,17 @@ import type {
 import { SCENARIO_STORAGE_KEY } from "./persistence";
 
 export type DisplayMode = "nominal" | "real";
+export type ThemeMode = "light" | "dark";
 
 type ZipCode = keyof typeof zipToState;
 
 interface ScenarioStoreState {
   scenario: ScenarioInputs;
   displayMode: DisplayMode;
+  themeMode: ThemeMode;
   headlineYear: number;
   setDisplayMode: (displayMode: DisplayMode) => void;
+  setThemeMode: (themeMode: ThemeMode) => void;
   setHeadlineYear: (headlineYear: number) => void;
   setZipCode: (zipCode: string) => void;
   setHomePrice: (homePrice: number) => void;
@@ -114,8 +117,10 @@ export const useScenarioStore = create<ScenarioStoreState>()(
     (set) => ({
       scenario: defaultScenario,
       displayMode: "nominal",
+      themeMode: "light",
       headlineYear: defaultScenario.saleYear,
       setDisplayMode: (displayMode) => set({ displayMode }),
+      setThemeMode: (themeMode) => set({ themeMode }),
       setHeadlineYear: (headlineYear) =>
         set((state) => ({
           headlineYear: clampYear(headlineYear, state.scenario.horizonYears),
@@ -344,6 +349,7 @@ export const useScenarioStore = create<ScenarioStoreState>()(
       partialize: (state) => ({
         scenario: state.scenario,
         displayMode: state.displayMode,
+        themeMode: state.themeMode,
         headlineYear: state.headlineYear,
       }),
     },

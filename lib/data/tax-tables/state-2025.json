@@ -1,0 +1,60 @@
+{
+  "CA": {
+    "name": "California",
+    "ordinaryIncomeBrackets": [
+      { "over": 0, "rate": 0.01 },
+      { "over": 10756, "rate": 0.02 },
+      { "over": 25499, "rate": 0.04 },
+      { "over": 40245, "rate": 0.06 },
+      { "over": 55866, "rate": 0.08 },
+      { "over": 70606, "rate": 0.093 },
+      { "over": 360659, "rate": 0.103 },
+      { "over": 432787, "rate": 0.113 },
+      { "over": 721314, "rate": 0.123 }
+    ],
+    "flatOrdinaryRate": null,
+    "taxesCapitalGainsAsOrdinaryIncome": true,
+    "flatCapitalGainsRate": null,
+    "allowsMortgageInterestDeduction": true
+  },
+  "TX": {
+    "name": "Texas",
+    "ordinaryIncomeBrackets": [],
+    "flatOrdinaryRate": 0,
+    "taxesCapitalGainsAsOrdinaryIncome": false,
+    "flatCapitalGainsRate": 0,
+    "allowsMortgageInterestDeduction": false
+  },
+  "NY": {
+    "name": "New York",
+    "ordinaryIncomeBrackets": [
+      { "over": 0, "rate": 0.04 },
+      { "over": 8500, "rate": 0.045 },
+      { "over": 11700, "rate": 0.0525 },
+      { "over": 13900, "rate": 0.055 },
+      { "over": 80650, "rate": 0.06 },
+      { "over": 215400, "rate": 0.0685 },
+      { "over": 1077550, "rate": 0.0965 }
+    ],
+    "flatOrdinaryRate": null,
+    "taxesCapitalGainsAsOrdinaryIncome": true,
+    "flatCapitalGainsRate": null,
+    "allowsMortgageInterestDeduction": true
+  },
+  "FL": {
+    "name": "Florida",
+    "ordinaryIncomeBrackets": [],
+    "flatOrdinaryRate": 0,
+    "taxesCapitalGainsAsOrdinaryIncome": false,
+    "flatCapitalGainsRate": 0,
+    "allowsMortgageInterestDeduction": false
+  },
+  "WA": {
+    "name": "Washington",
+    "ordinaryIncomeBrackets": [],
+    "flatOrdinaryRate": 0,
+    "taxesCapitalGainsAsOrdinaryIncome": false,
+    "flatCapitalGainsRate": 0.07,
+    "allowsMortgageInterestDeduction": false
+  }
+}

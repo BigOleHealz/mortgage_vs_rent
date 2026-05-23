@@ -1,11 +1,11 @@
 "use client";
 
 import { NumberSliderInput } from "@/components/inputs/NumberSliderInput";
-import { useScenarioStore } from "@/lib/store/scenarioStore";
+import { type ScenarioId, useScenarioStore } from "@/lib/store/scenarioStore";
 import { SectionCard } from "./SectionCard";
 
-export function OwnershipCostsSection() {
-  const scenario = useScenarioStore((state) => state.scenario);
+export function OwnershipCostsSection({ scenarioId }: { scenarioId: ScenarioId }) {
+  const scenario = useScenarioStore((state) => state.scenarios[scenarioId]);
   const setOwnershipCost = useScenarioStore((state) => state.setOwnershipCost);
   const setMaintenance = useScenarioStore((state) => state.setMaintenance);
   const costs = scenario.ownershipCosts;
@@ -17,7 +17,7 @@ export function OwnershipCostsSection() {
         label="Property tax rate"
         max={4}
         min={0}
-        onChange={(value) => setOwnershipCost("propertyTaxRate", value / 100)}
+        onChange={(value) => setOwnershipCost("propertyTaxRate", value / 100, scenarioId)}
         step={0.05}
         value={costs.propertyTaxRate * 100}
       />
@@ -27,7 +27,7 @@ export function OwnershipCostsSection() {
         max={10}
         min={0}
         onChange={(value) =>
-          setOwnershipCost("propertyTaxGrowthRate", value / 100)
+          setOwnershipCost("propertyTaxGrowthRate", value / 100, scenarioId)
         }
         step={0.1}
         value={costs.propertyTaxGrowthRate * 100}
@@ -37,7 +37,7 @@ export function OwnershipCostsSection() {
         label="Insurance rate"
         max={2}
         min={0}
-        onChange={(value) => setOwnershipCost("insuranceRate", value / 100)}
+        onChange={(value) => setOwnershipCost("insuranceRate", value / 100, scenarioId)}
         step={0.05}
         value={costs.insuranceRate * 100}
       />
@@ -46,7 +46,7 @@ export function OwnershipCostsSection() {
         label="Insurance growth"
         max={10}
         min={0}
-        onChange={(value) => setOwnershipCost("insuranceGrowthRate", value / 100)}
+        onChange={(value) => setOwnershipCost("insuranceGrowthRate", value / 100, scenarioId)}
         step={0.1}
         value={costs.insuranceGrowthRate * 100}
       />
@@ -55,7 +55,7 @@ export function OwnershipCostsSection() {
         label="HOA monthly"
         max={3_000}
         min={0}
-        onChange={(value) => setOwnershipCost("hoaMonthly", value)}
+        onChange={(value) => setOwnershipCost("hoaMonthly", value, scenarioId)}
         step={25}
         value={costs.hoaMonthly}
       />
@@ -64,7 +64,7 @@ export function OwnershipCostsSection() {
         label="HOA growth"
         max={10}
         min={0}
-        onChange={(value) => setOwnershipCost("hoaGrowthRate", value / 100)}
+        onChange={(value) => setOwnershipCost("hoaGrowthRate", value / 100, scenarioId)}
         step={0.1}
         value={costs.hoaGrowthRate * 100}
       />
@@ -84,7 +84,7 @@ export function OwnershipCostsSection() {
                   costs.maintenance.kind === "percentOfHomeValue"
                     ? costs.maintenance.rate
                     : 0.01,
-              })
+              }, scenarioId)
             }
           >
             Percent
@@ -101,7 +101,7 @@ export function OwnershipCostsSection() {
                   costs.maintenance.kind === "annualAmount"
                     ? costs.maintenance.amount
                     : 5_000,
-              })
+              }, scenarioId)
             }
           >
             Dollars
@@ -121,6 +121,7 @@ export function OwnershipCostsSection() {
               costs.maintenance.kind === "percentOfHomeValue"
                 ? { kind: "percentOfHomeValue", rate: value / 100 }
                 : { kind: "annualAmount", amount: value },
+              scenarioId,
             )
           }
           step={costs.maintenance.kind === "percentOfHomeValue" ? 0.1 : 250}
@@ -136,7 +137,7 @@ export function OwnershipCostsSection() {
         label="Maintenance growth"
         max={10}
         min={0}
-        onChange={(value) => setOwnershipCost("maintenanceGrowthRate", value / 100)}
+        onChange={(value) => setOwnershipCost("maintenanceGrowthRate", value / 100, scenarioId)}
         step={0.1}
         value={costs.maintenanceGrowthRate * 100}
       />

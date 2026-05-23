@@ -1,11 +1,13 @@
 "use client";
 
 import { NumberSliderInput } from "@/components/inputs/NumberSliderInput";
-import { useScenarioStore } from "@/lib/store/scenarioStore";
+import { type ScenarioId, useScenarioStore } from "@/lib/store/scenarioStore";
 import { SectionCard } from "./SectionCard";
 
-export function AppreciationSection() {
-  const appreciation = useScenarioStore((state) => state.scenario.appreciation);
+export function AppreciationSection({ scenarioId }: { scenarioId: ScenarioId }) {
+  const appreciation = useScenarioStore(
+    (state) => state.scenarios[scenarioId].appreciation,
+  );
   const setAppreciation = useScenarioStore((state) => state.setAppreciation);
 
   return (
@@ -15,7 +17,7 @@ export function AppreciationSection() {
         label="Annual appreciation"
         max={10}
         min={-2}
-        onChange={(value) => setAppreciation("annualRate", value / 100)}
+        onChange={(value) => setAppreciation("annualRate", value / 100, scenarioId)}
         step={0.1}
         value={appreciation.annualRate * 100}
       />
@@ -24,7 +26,7 @@ export function AppreciationSection() {
         label="Selling costs"
         max={10}
         min={0}
-        onChange={(value) => setAppreciation("sellingCostRate", value / 100)}
+        onChange={(value) => setAppreciation("sellingCostRate", value / 100, scenarioId)}
         step={0.1}
         value={appreciation.sellingCostRate * 100}
       />

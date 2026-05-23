@@ -17,6 +17,7 @@ import { formatCompactCurrency, formatCurrency } from "./formatters";
 
 interface NetWorthChartProps {
   results: ScenarioResults;
+  compareResults?: ScenarioResults;
   displayMode: DisplayMode;
 }
 
@@ -25,15 +26,41 @@ interface ChartRow {
   buyer: number;
   renter: number;
   delta: number;
+  buyerB?: number;
+  renterB?: number;
+  deltaB?: number;
 }
 
-export function NetWorthChart({ results, displayMode }: NetWorthChartProps) {
+export function NetWorthChart({
+  results,
+  compareResults,
+  displayMode,
+}: NetWorthChartProps) {
   const data: ChartRow[] = results.comparison.map((row) => ({
     year: row.year,
     buyer: displayMode === "real" ? row.realBuyerNetWorth : row.buyerNetWorth,
     renter: displayMode === "real" ? row.realRenterNetWorth : row.renterNetWorth,
     delta: displayMode === "real" ? row.realDelta : row.delta,
-  }));
+  })).map((row) => {
+    const comparisonB = compareResults?.comparison[row.year - 1];
+
+    if (!comparisonB) {
+      return row;
+    }
+
+    return {
+      ...row,
+      buyerB:
+        displayMode === "real"
+          ? comparisonB.realBuyerNetWorth
+          : comparisonB.buyerNetWorth,
+      renterB:
+        displayMode === "real"
+          ? comparisonB.realRenterNetWorth
+          : comparisonB.renterNetWorth,
+      deltaB: displayMode === "real" ? comparisonB.realDelta : comparisonB.delta,
+    };
+  });
 
   return (
     <section className="operator-panel rounded-sm p-5">
@@ -58,7 +85,7 @@ export function NetWorthChart({ results, displayMode }: NetWorthChartProps) {
               tickLine={false}
               width={72}
             />
-            <Tooltip content={<ChartTooltip />} />
+            <Tooltip content={<ChartTooltip compareMode={Boolean(compareResults)} />} />
             <Legend />
             {results.breakEvenYear ? (
               <ReferenceLine
@@ -70,7 +97,7 @@ export function NetWorthChart({ results, displayMode }: NetWorthChartProps) {
             <Line
               dataKey="buyer"
               dot={false}
-              name="Buyer net worth"
+              name={compareResults ? "A buyer net worth" : "Buyer net worth"}
               stroke="hsl(var(--primary))"
               strokeWidth={3}
               type="monotone"
@@ -78,11 +105,33 @@ export function NetWorthChart({ results, displayMode }: NetWorthChartProps) {
             <Line
               dataKey="renter"
               dot={false}
-              name="Renter net worth"
+              name={compareResults ? "A renter net worth" : "Renter net worth"}
               stroke="hsl(var(--accent))"
               strokeWidth={3}
               type="monotone"
             />
+            {compareResults ? (
+              <>
+                <Line
+                  dataKey="buyerB"
+                  dot={false}
+                  name="B buyer net worth"
+                  stroke="hsl(var(--primary) / 0.55)"
+                  strokeDasharray="8 6"
+                  strokeWidth={3}
+                  type="monotone"
+                />
+                <Line
+                  dataKey="renterB"
+                  dot={false}
+                  name="B renter net worth"
+                  stroke="hsl(var(--accent) / 0.55)"
+                  strokeDasharray="8 6"
+                  strokeWidth={3}
+                  type="monotone"
+                />
+              </>
+            ) : null}
           </LineChart>
         </ResponsiveContainer>
       </div>
@@ -94,10 +143,12 @@ function ChartTooltip({
   active,
   payload,
   label,
+  compareMode,
 }: {
   active?: boolean;
   payload?: Array<{ dataKey: string; value: number }>;
   label?: number;
+  compareMode: boolean;
 }) {
   if (!active || !payload) {
     return null;
@@ -105,14 +156,23 @@ function ChartTooltip({
 
   const buyer = payload.find((item) => item.dataKey === "buyer")?.value ?? 0;
   const renter = payload.find((item) => item.dataKey === "renter")?.value ?? 0;
+  const buyerB = payload.find((item) => item.dataKey === "buyerB")?.value;
+  const renterB = payload.find((item) => item.dataKey === "renterB")?.value;
   const delta = buyer - renter;
 
   return (
     <div className="rounded-sm border border-primary/30 bg-card/95 p-3 text-sm shadow-[0_0_28px_hsl(var(--primary)/0.16)]">
       <p className="font-semibold">Year {label}</p>
-      <p>Buyer: {formatCurrency(buyer)}</p>
-      <p>Renter: {formatCurrency(renter)}</p>
-      <p className="font-semibold">Delta: {formatCurrency(delta)}</p>
+      <p>{compareMode ? "A buyer" : "Buyer"}: {formatCurrency(buyer)}</p>
+      <p>{compareMode ? "A renter" : "Renter"}: {formatCurrency(renter)}</p>
+      <p className="font-semibold">A delta: {formatCurrency(delta)}</p>
+      {buyerB !== undefined && renterB !== undefined ? (
+        <>
+          <p>B buyer: {formatCurrency(buyerB)}</p>
+          <p>B renter: {formatCurrency(renterB)}</p>
+          <p className="font-semibold">B delta: {formatCurrency(buyerB - renterB)}</p>
+        </>
+      ) : null}
     </div>
   );
 }

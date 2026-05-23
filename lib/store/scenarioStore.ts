@@ -16,50 +16,73 @@ import { SCENARIO_STORAGE_KEY } from "./persistence";
 
 export type DisplayMode = "nominal" | "real";
 export type ThemeMode = "light" | "dark";
+export type ScenarioId = "A" | "B";
+
+export interface SavedScenario {
+  id: string;
+  name: string;
+  createdAt: string;
+  scenario: ScenarioInputs;
+}
 
 type ZipCode = keyof typeof zipToState;
 
 interface ScenarioStoreState {
   scenario: ScenarioInputs;
+  scenarios: Record<ScenarioId, ScenarioInputs>;
+  activeScenarioId: ScenarioId;
+  compareMode: boolean;
+  savedScenarios: SavedScenario[];
   displayMode: DisplayMode;
   themeMode: ThemeMode;
   headlineYear: number;
+  setActiveScenarioId: (scenarioId: ScenarioId) => void;
+  setCompareMode: (compareMode: boolean) => void;
   setDisplayMode: (displayMode: DisplayMode) => void;
   setThemeMode: (themeMode: ThemeMode) => void;
   setHeadlineYear: (headlineYear: number) => void;
-  setZipCode: (zipCode: string) => void;
-  setHomePrice: (homePrice: number) => void;
-  setClosingCostRate: (closingCostRate: number) => void;
-  setCashPurchase: (cashPurchase: boolean) => void;
-  setDownPayment: (downPayment: DownPaymentInput) => void;
+  saveNamedScenario: (name: string, scenarioId?: ScenarioId) => void;
+  loadSavedScenario: (savedScenarioId: string, targetScenarioId?: ScenarioId) => void;
+  duplicateSavedScenario: (savedScenarioId: string) => void;
+  deleteSavedScenario: (savedScenarioId: string) => void;
+  setZipCode: (zipCode: string, scenarioId?: ScenarioId) => void;
+  setHomePrice: (homePrice: number, scenarioId?: ScenarioId) => void;
+  setClosingCostRate: (closingCostRate: number, scenarioId?: ScenarioId) => void;
+  setCashPurchase: (cashPurchase: boolean, scenarioId?: ScenarioId) => void;
+  setDownPayment: (downPayment: DownPaymentInput, scenarioId?: ScenarioId) => void;
   setMortgageField: (
     field: keyof Omit<Extract<PurchaseMode, { kind: "mortgage" }>, "kind" | "downPayment" | "lumpSumPrepayments">,
     value: number,
+    scenarioId?: ScenarioId,
   ) => void;
-  addLumpSumPrepayment: () => void;
+  addLumpSumPrepayment: (scenarioId?: ScenarioId) => void;
   updateLumpSumPrepayment: (
     index: number,
     patch: Partial<LumpSumPrepayment>,
+    scenarioId?: ScenarioId,
   ) => void;
-  removeLumpSumPrepayment: (index: number) => void;
+  removeLumpSumPrepayment: (index: number, scenarioId?: ScenarioId) => void;
   setOwnershipCost: (
     field: Exclude<keyof ScenarioInputs["ownershipCosts"], "maintenance">,
     value: number,
+    scenarioId?: ScenarioId,
   ) => void;
-  setMaintenance: (maintenance: MaintenanceInput) => void;
+  setMaintenance: (maintenance: MaintenanceInput, scenarioId?: ScenarioId) => void;
   setAppreciation: (
     field: keyof ScenarioInputs["appreciation"],
     value: number,
+    scenarioId?: ScenarioId,
   ) => void;
-  setRent: (field: keyof ScenarioInputs["rent"], value: number) => void;
+  setRent: (field: keyof ScenarioInputs["rent"], value: number, scenarioId?: ScenarioId) => void;
   setInvestment: (
     field: keyof ScenarioInputs["investment"],
     value: number,
+    scenarioId?: ScenarioId,
   ) => void;
-  setFilingStatus: (filingStatus: FilingStatus) => void;
-  setHouseholdIncome: (householdIncome: number) => void;
-  setInflationRate: (inflationRate: number) => void;
-  setSaleYear: (saleYear: number) => void;
+  setFilingStatus: (filingStatus: FilingStatus, scenarioId?: ScenarioId) => void;
+  setHouseholdIncome: (householdIncome: number, scenarioId?: ScenarioId) => void;
+  setInflationRate: (inflationRate: number, scenarioId?: ScenarioId) => void;
+  setSaleYear: (saleYear: number, scenarioId?: ScenarioId) => void;
 }
 
 const DEFAULT_ZIP = "10001";
@@ -116,95 +139,159 @@ export const useScenarioStore = create<ScenarioStoreState>()(
   persist(
     (set) => ({
       scenario: defaultScenario,
+      scenarios: {
+        A: defaultScenario,
+        B: createScenarioB(),
+      },
+      activeScenarioId: "A",
+      compareMode: false,
+      savedScenarios: [],
       displayMode: "nominal",
       themeMode: "dark",
       headlineYear: defaultScenario.saleYear,
+      setActiveScenarioId: (activeScenarioId) =>
+        set((state) => ({
+          activeScenarioId,
+          scenario: state.scenarios[activeScenarioId],
+        })),
+      setCompareMode: (compareMode) => set({ compareMode }),
       setDisplayMode: (displayMode) => set({ displayMode }),
       setThemeMode: (themeMode) => set({ themeMode }),
       setHeadlineYear: (headlineYear) =>
         set((state) => ({
-          headlineYear: clampYear(headlineYear, state.scenario.horizonYears),
+          headlineYear: clampYear(headlineYear, state.scenarios[state.activeScenarioId].horizonYears),
         })),
-      setZipCode: (zipCode) =>
+      saveNamedScenario: (name, scenarioId) =>
         set((state) => {
+          const targetId = scenarioId ?? state.activeScenarioId;
+          const trimmedName = name.trim();
+
+          if (!trimmedName) {
+            return state;
+          }
+
+          return {
+            savedScenarios: [
+              ...state.savedScenarios,
+              {
+                id: crypto.randomUUID(),
+                name: trimmedName,
+                createdAt: new Date().toISOString(),
+                scenario: state.scenarios[targetId],
+              },
+            ],
+          };
+        }),
+      loadSavedScenario: (savedScenarioId, targetScenarioId) =>
+        set((state) => {
+          const savedScenario = state.savedScenarios.find(
+            (candidate) => candidate.id === savedScenarioId,
+          );
+          const targetId = targetScenarioId ?? state.activeScenarioId;
+
+          if (!savedScenario) {
+            return state;
+          }
+
+          return replaceScenario(state, targetId, savedScenario.scenario);
+        }),
+      duplicateSavedScenario: (savedScenarioId) =>
+        set((state) => {
+          const savedScenario = state.savedScenarios.find(
+            (candidate) => candidate.id === savedScenarioId,
+          );
+
+          if (!savedScenario) {
+            return state;
+          }
+
+          return {
+            savedScenarios: [
+              ...state.savedScenarios,
+              {
+                ...savedScenario,
+                id: crypto.randomUUID(),
+                name: `${savedScenario.name} copy`,
+                createdAt: new Date().toISOString(),
+              },
+            ],
+          };
+        }),
+      deleteSavedScenario: (savedScenarioId) =>
+        set((state) => ({
+          savedScenarios: state.savedScenarios.filter(
+            (savedScenario) => savedScenario.id !== savedScenarioId,
+          ),
+        })),
+      setZipCode: (zipCode, scenarioId) =>
+        set((state) => {
+          const targetId = scenarioId ?? state.activeScenarioId;
+          const scenario = state.scenarios[targetId];
           const stateCode = lookupState(zipCode);
           const taxes = stateCode
             ? deriveTax(
-                state.scenario.taxes.filingStatus,
-                state.scenario.taxes.householdIncome,
+                scenario.taxes.filingStatus,
+                scenario.taxes.householdIncome,
                 stateCode,
               )
-            : state.scenario.taxes;
+            : scenario.taxes;
 
-          return {
-            scenario: {
-              ...state.scenario,
-              property: { ...state.scenario.property, zipCode },
-              taxes,
-            },
-          };
+          return replaceScenario(state, targetId, {
+            ...scenario,
+            property: { ...scenario.property, zipCode },
+            taxes,
+          });
         }),
-      setHomePrice: (homePrice) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
-            property: { ...state.scenario.property, homePrice },
+      setHomePrice: (homePrice, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
+          property: { ...scenario.property, homePrice },
+        }))),
+      setClosingCostRate: (closingCostRate, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
+          property: { ...scenario.property, closingCostRate },
+        }))),
+      setCashPurchase: (cashPurchase, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
+          property: {
+            ...scenario.property,
+            purchaseMode: cashPurchase
+              ? { kind: "cash" }
+              : ensureMortgageMode(scenario.property.purchaseMode),
           },
-        })),
-      setClosingCostRate: (closingCostRate) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
-            property: { ...state.scenario.property, closingCostRate },
-          },
-        })),
-      setCashPurchase: (cashPurchase) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
-            property: {
-              ...state.scenario.property,
-              purchaseMode: cashPurchase
-                ? { kind: "cash" }
-                : ensureMortgageMode(state.scenario.property.purchaseMode),
+        }))),
+      setDownPayment: (downPayment, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
+          property: {
+            ...scenario.property,
+            purchaseMode: {
+              ...ensureMortgageMode(scenario.property.purchaseMode),
+              downPayment,
             },
           },
-        })),
-      setDownPayment: (downPayment) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
-            property: {
-              ...state.scenario.property,
-              purchaseMode: {
-                ...ensureMortgageMode(state.scenario.property.purchaseMode),
-                downPayment,
-              },
+        }))),
+      setMortgageField: (field, value, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
+          property: {
+            ...scenario.property,
+            purchaseMode: {
+              ...ensureMortgageMode(scenario.property.purchaseMode),
+              [field]: value,
             },
           },
-        })),
-      setMortgageField: (field, value) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
-            property: {
-              ...state.scenario.property,
-              purchaseMode: {
-                ...ensureMortgageMode(state.scenario.property.purchaseMode),
-                [field]: value,
-              },
-            },
-          },
-        })),
-      addLumpSumPrepayment: () =>
+        }))),
+      addLumpSumPrepayment: (scenarioId) =>
         set((state) => {
-          const mortgage = ensureMortgageMode(state.scenario.property.purchaseMode);
-
-          return {
-            scenario: {
-              ...state.scenario,
+          return updateScenario(state, scenarioId, (scenario) => {
+            const mortgage = ensureMortgageMode(scenario.property.purchaseMode);
+            return {
+              ...scenario,
               property: {
-                ...state.scenario.property,
+                ...scenario.property,
                 purchaseMode: {
                   ...mortgage,
                   lumpSumPrepayments: [
@@ -213,18 +300,17 @@ export const useScenarioStore = create<ScenarioStoreState>()(
                   ],
                 },
               },
-            },
-          };
+            };
+          });
         }),
-      updateLumpSumPrepayment: (index, patch) =>
+      updateLumpSumPrepayment: (index, patch, scenarioId) =>
         set((state) => {
-          const mortgage = ensureMortgageMode(state.scenario.property.purchaseMode);
-
-          return {
-            scenario: {
-              ...state.scenario,
+          return updateScenario(state, scenarioId, (scenario) => {
+            const mortgage = ensureMortgageMode(scenario.property.purchaseMode);
+            return {
+              ...scenario,
               property: {
-                ...state.scenario.property,
+                ...scenario.property,
                 purchaseMode: {
                   ...mortgage,
                   lumpSumPrepayments: mortgage.lumpSumPrepayments.map(
@@ -235,7 +321,7 @@ export const useScenarioStore = create<ScenarioStoreState>()(
                             ...patch,
                             year: clampYear(
                               patch.year ?? prepayment.year,
-                              state.scenario.horizonYears,
+                              scenario.horizonYears,
                             ),
                             amount: Math.max(0, patch.amount ?? prepayment.amount),
                           }
@@ -243,18 +329,17 @@ export const useScenarioStore = create<ScenarioStoreState>()(
                   ),
                 },
               },
-            },
-          };
+            };
+          });
         }),
-      removeLumpSumPrepayment: (index) =>
+      removeLumpSumPrepayment: (index, scenarioId) =>
         set((state) => {
-          const mortgage = ensureMortgageMode(state.scenario.property.purchaseMode);
-
-          return {
-            scenario: {
-              ...state.scenario,
+          return updateScenario(state, scenarioId, (scenario) => {
+            const mortgage = ensureMortgageMode(scenario.property.purchaseMode);
+            return {
+              ...scenario,
               property: {
-                ...state.scenario.property,
+                ...scenario.property,
                 purchaseMode: {
                   ...mortgage,
                   lumpSumPrepayments: mortgage.lumpSumPrepayments.filter(
@@ -262,92 +347,87 @@ export const useScenarioStore = create<ScenarioStoreState>()(
                   ),
                 },
               },
-            },
-          };
+            };
+          });
         }),
-      setOwnershipCost: (field, value) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
+      setOwnershipCost: (field, value, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
             ownershipCosts: {
-              ...state.scenario.ownershipCosts,
+              ...scenario.ownershipCosts,
               [field]: value,
             },
-          },
-        })),
-      setMaintenance: (maintenance) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
+        }))),
+      setMaintenance: (maintenance, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
             ownershipCosts: {
-              ...state.scenario.ownershipCosts,
+              ...scenario.ownershipCosts,
               maintenance,
             },
-          },
-        })),
-      setAppreciation: (field, value) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
-            appreciation: { ...state.scenario.appreciation, [field]: value },
-          },
-        })),
-      setRent: (field, value) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
-            rent: { ...state.scenario.rent, [field]: value },
-          },
-        })),
-      setInvestment: (field, value) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
-            investment: { ...state.scenario.investment, [field]: value },
-          },
-        })),
-      setFilingStatus: (filingStatus) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
+        }))),
+      setAppreciation: (field, value, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
+          appreciation: { ...scenario.appreciation, [field]: value },
+        }))),
+      setRent: (field, value, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
+          rent: { ...scenario.rent, [field]: value },
+        }))),
+      setInvestment: (field, value, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
+          investment: { ...scenario.investment, [field]: value },
+        }))),
+      setFilingStatus: (filingStatus, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
             taxes: deriveTax(
               filingStatus,
-              state.scenario.taxes.householdIncome,
-              lookupState(state.scenario.property.zipCode) ?? "NY",
+              scenario.taxes.householdIncome,
+              lookupState(scenario.property.zipCode) ?? "NY",
             ),
-          },
-        })),
-      setHouseholdIncome: (householdIncome) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
+        }))),
+      setHouseholdIncome: (householdIncome, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
             taxes: deriveTax(
-              state.scenario.taxes.filingStatus,
+              scenario.taxes.filingStatus,
               householdIncome,
-              lookupState(state.scenario.property.zipCode) ?? "NY",
+              lookupState(scenario.property.zipCode) ?? "NY",
             ),
-          },
-        })),
-      setInflationRate: (inflationRate) =>
-        set((state) => ({
-          scenario: {
-            ...state.scenario,
-            macro: { ...state.scenario.macro, inflationRate },
-          },
-        })),
-      setSaleYear: (saleYear) =>
-        set((state) => ({
-          headlineYear: clampYear(saleYear, state.scenario.horizonYears),
-          scenario: {
-            ...state.scenario,
-            saleYear: clampYear(saleYear, state.scenario.horizonYears),
-          },
-        })),
+        }))),
+      setInflationRate: (inflationRate, scenarioId) =>
+        set((state) => updateScenario(state, scenarioId, (scenario) => ({
+          ...scenario,
+          macro: { ...scenario.macro, inflationRate },
+        }))),
+      setSaleYear: (saleYear, scenarioId) =>
+        set((state) => {
+          const targetId = scenarioId ?? state.activeScenarioId;
+          const scenario = state.scenarios[targetId];
+          const clampedSaleYear = clampYear(saleYear, scenario.horizonYears);
+          const nextState = replaceScenario(state, targetId, {
+            ...scenario,
+            saleYear: clampedSaleYear,
+          });
+
+          return {
+            ...nextState,
+            headlineYear: targetId === state.activeScenarioId ? clampedSaleYear : state.headlineYear,
+          };
+        }),
     }),
     {
       name: SCENARIO_STORAGE_KEY,
       partialize: (state) => ({
         scenario: state.scenario,
+        scenarios: state.scenarios,
+        activeScenarioId: state.activeScenarioId,
+        compareMode: state.compareMode,
+        savedScenarios: state.savedScenarios,
         displayMode: state.displayMode,
         themeMode: state.themeMode,
         headlineYear: state.headlineYear,
@@ -355,6 +435,45 @@ export const useScenarioStore = create<ScenarioStoreState>()(
     },
   ),
 );
+
+function createScenarioB(): ScenarioInputs {
+  return {
+    ...defaultScenario,
+    property: {
+      ...defaultScenario.property,
+      homePrice: 575_000,
+    },
+    rent: {
+      ...defaultScenario.rent,
+      monthlyRent: 2_900,
+    },
+  };
+}
+
+function updateScenario(
+  state: ScenarioStoreState,
+  scenarioId: ScenarioId | undefined,
+  updater: (scenario: ScenarioInputs) => ScenarioInputs,
+): Partial<ScenarioStoreState> {
+  const targetId = scenarioId ?? state.activeScenarioId;
+  return replaceScenario(state, targetId, updater(state.scenarios[targetId]));
+}
+
+function replaceScenario(
+  state: ScenarioStoreState,
+  scenarioId: ScenarioId,
+  scenario: ScenarioInputs,
+): Partial<ScenarioStoreState> {
+  const scenarios = {
+    ...state.scenarios,
+    [scenarioId]: scenario,
+  };
+
+  return {
+    scenarios,
+    scenario: scenarios[state.activeScenarioId],
+  };
+}
 
 function ensureMortgageMode(
   purchaseMode: PurchaseMode,

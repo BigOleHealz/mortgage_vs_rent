@@ -23,9 +23,14 @@ const NetWorthChart = dynamic(
 
 export function CalculatorApp() {
   const scenario = useScenarioStore((state) => state.scenario);
+  const scenarios = useScenarioStore((state) => state.scenarios);
+  const activeScenarioId = useScenarioStore((state) => state.activeScenarioId);
+  const compareMode = useScenarioStore((state) => state.compareMode);
   const displayMode = useScenarioStore((state) => state.displayMode);
   const themeMode = useScenarioStore((state) => state.themeMode);
   const results = useMemo(() => calculate(scenario), [scenario]);
+  const resultsA = useMemo(() => calculate(scenarios.A), [scenarios.A]);
+  const resultsB = useMemo(() => calculate(scenarios.B), [scenarios.B]);
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", themeMode === "dark");
@@ -56,17 +61,60 @@ export function CalculatorApp() {
             </div>
           </div>
         </header>
-        <div className="relative grid gap-6 lg:grid-cols-[minmax(360px,35%)_1fr]">
+        <div
+          className={`relative grid gap-6 ${
+            compareMode ? "xl:grid-cols-[minmax(340px,46%)_1fr]" : "lg:grid-cols-[minmax(360px,35%)_1fr]"
+          }`}
+        >
           <div className="max-h-[calc(100vh-120px)] overflow-y-auto pr-1">
-            <InputRail />
+            {compareMode ? (
+              <div className="grid gap-4 lg:grid-cols-2 xl:grid-cols-1 2xl:grid-cols-2">
+                <ScenarioRail scenarioId="A" />
+                <ScenarioRail scenarioId="B" />
+              </div>
+            ) : (
+              <ScenarioRail scenarioId={activeScenarioId} />
+            )}
           </div>
           <section className="space-y-6">
-            <HeadlineResult displayMode={displayMode} results={results} />
-            <NetWorthChart displayMode={displayMode} results={results} />
-            <YearByYearTable displayMode={displayMode} results={results} />
+            {compareMode ? (
+              <>
+                <div className="grid gap-4 xl:grid-cols-2">
+                  <HeadlineResult displayMode={displayMode} label="Scenario A" results={resultsA} />
+                  <HeadlineResult displayMode={displayMode} label="Scenario B" results={resultsB} />
+                </div>
+                <NetWorthChart
+                  compareResults={resultsB}
+                  displayMode={displayMode}
+                  results={resultsA}
+                />
+                <YearByYearTable displayMode={displayMode} label="Scenario A" results={resultsA} />
+                <YearByYearTable displayMode={displayMode} label="Scenario B" results={resultsB} />
+              </>
+            ) : (
+              <>
+                <HeadlineResult displayMode={displayMode} results={results} />
+                <NetWorthChart displayMode={displayMode} results={results} />
+                <YearByYearTable displayMode={displayMode} results={results} />
+              </>
+            )}
           </section>
         </div>
       </div>
     </main>
+  );
+}
+
+function ScenarioRail({ scenarioId }: { scenarioId: "A" | "B" }) {
+  return (
+    <div className="space-y-4">
+      <div className="operator-panel rounded-sm p-4">
+        <p className="operator-kicker">Scenario_{scenarioId}</p>
+        <h2 className="operator-title mt-1 text-2xl">
+          Assumption Stack
+        </h2>
+      </div>
+      <InputRail scenarioId={scenarioId} />
+    </div>
   );
 }

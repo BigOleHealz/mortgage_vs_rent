@@ -1,11 +1,11 @@
 "use client";
 
 import { NumberSliderInput } from "@/components/inputs/NumberSliderInput";
-import { useScenarioStore } from "@/lib/store/scenarioStore";
+import { type ScenarioId, useScenarioStore } from "@/lib/store/scenarioStore";
 import { SectionCard } from "./SectionCard";
 
-export function PropertySection() {
-  const scenario = useScenarioStore((state) => state.scenario);
+export function PropertySection({ scenarioId }: { scenarioId: ScenarioId }) {
+  const scenario = useScenarioStore((state) => state.scenarios[scenarioId]);
   const setZipCode = useScenarioStore((state) => state.setZipCode);
   const setHomePrice = useScenarioStore((state) => state.setHomePrice);
   const setCashPurchase = useScenarioStore((state) => state.setCashPurchase);
@@ -23,7 +23,7 @@ export function PropertySection() {
         <input
           className="w-full rounded-md border bg-card px-3 py-2 text-sm outline-none ring-primary/20 focus:ring-4"
           value={scenario.property.zipCode}
-          onChange={(event) => setZipCode(event.target.value)}
+          onChange={(event) => setZipCode(event.target.value, scenarioId)}
         />
         <span className="block text-[11px] uppercase tracking-[0.18em] text-muted-foreground">
           Manual
@@ -34,7 +34,7 @@ export function PropertySection() {
         label="Home price"
         max={2_500_000}
         min={50_000}
-        onChange={setHomePrice}
+        onChange={(value) => setHomePrice(value, scenarioId)}
         step={5_000}
         value={scenario.property.homePrice}
       />
@@ -44,7 +44,7 @@ export function PropertySection() {
           checked={purchaseMode.kind === "cash"}
           className="h-4 w-4 accent-primary"
           type="checkbox"
-          onChange={(event) => setCashPurchase(event.target.checked)}
+          onChange={(event) => setCashPurchase(event.target.checked, scenarioId)}
         />
       </label>
       {purchaseMode.kind === "mortgage" ? (
@@ -62,7 +62,7 @@ export function PropertySection() {
                     downPayment.kind === "percent"
                       ? downPayment.value
                       : downPayment.value / scenario.property.homePrice,
-                })
+                }, scenarioId)
               }
             >
               Percent
@@ -79,7 +79,7 @@ export function PropertySection() {
                     downPayment.kind === "amount"
                       ? downPayment.value
                       : downPayment.value * scenario.property.homePrice,
-                })
+                }, scenarioId)
               }
             >
               Dollars
@@ -95,6 +95,7 @@ export function PropertySection() {
                 downPayment.kind === "percent"
                   ? { kind: "percent", value: value / 100 }
                   : { kind: "amount", value },
+                scenarioId,
               )
             }
             step={downPayment.kind === "percent" ? 1 : 1_000}

@@ -8,9 +8,10 @@ import { formatCurrency } from "./formatters";
 interface HeadlineResultProps {
   results: ScenarioResults;
   displayMode: DisplayMode;
+  label?: string;
 }
 
-export function HeadlineResult({ results, displayMode }: HeadlineResultProps) {
+export function HeadlineResult({ results, displayMode, label }: HeadlineResultProps) {
   const headlineYear = useScenarioStore((state) => state.headlineYear);
   const setHeadlineYear = useScenarioStore((state) => state.setHeadlineYear);
   const row = results.comparison[headlineYear - 1];
@@ -19,7 +20,9 @@ export function HeadlineResult({ results, displayMode }: HeadlineResultProps) {
 
   return (
     <section className="operator-panel rounded-sm p-6">
-      <p className="operator-kicker">SYS.STATUS: headline result</p>
+      <p className="operator-kicker">
+        SYS.STATUS: {label ?? "headline result"}
+      </p>
       <h2 className="operator-title mt-3 text-5xl leading-[0.92]">
         At year {headlineYear}, buying nets you{" "}
         <span className={buyerWins ? "text-primary" : "text-accent drop-shadow-[0_0_18px_hsl(var(--accent)/0.35)]"}>
